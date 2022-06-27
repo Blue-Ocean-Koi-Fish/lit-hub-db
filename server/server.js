@@ -33,9 +33,9 @@ app.get('/search', (req, res) => {
   .catch(err => (console.log('/search is currently failing. Error: ', err)));
 })
 
-app.get('/testUrl', (req, res) => {
+app.get('/txt', (req, res) => {
 
-  search.getTxt()
+  search.getTxt(req.query.url)
   .then(data => {
     res.json(data.data);
   })

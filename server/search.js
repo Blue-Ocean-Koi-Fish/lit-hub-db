@@ -15,7 +15,18 @@ function search(querys) {
   .catch(err => (console.log('Error when calling axios. Function name: search, File: search.js, Folder: server. The error returned: ', err)));
 }
 
-function getTxt(txtUrl = 'https://www.gutenberg.org/files/11/11-0.txt') {
+function getTxt(txtUrl = 'https://www.gutenberg.org/files/11/11-0.zip') {
+  let checkPostFix = txtUrl.substr((txtUrl.length - 3));
+
+
+
+  if (checkPostFix === 'zip') {
+    txtUrl = txtUrl.substr(0, (txtUrl.length - 3));
+    txtUrl += 'txt';
+  } else {
+    console.log('Check postfix : ', checkPostFix);
+  }
+
   return axios.get(txtUrl)
   .catch(err => (console.log('Error when calling axios. Function name: search, File: search.js, Folder: server. The error returned: ', err)));
 }
