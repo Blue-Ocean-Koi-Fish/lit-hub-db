@@ -64,7 +64,6 @@ typings/
 
 # Config files
 .vscode/
-package-lock.json
 
 # Output of 'npm pack'
 *.tgz
