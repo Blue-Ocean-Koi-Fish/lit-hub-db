@@ -32,6 +32,15 @@ app.get('/search', (req, res) => {
   res.json({ message: 'Search has been used' });
 })
 
+app.get('/testUrl', (req, res) => {
+
+  search.getTxt()
+  .then(data => {
+    res.json(data.data);
+  })
+  .catch(err => (console.log('/search is currently failing. Error: ', err)));
+})
+
 app.get('/search/author', (req, res) => {
 
   res.json({message: 'author call has not been completed'});

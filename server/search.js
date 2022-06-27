@@ -8,7 +8,13 @@ function search(params) {
   .catch(err => (console.log('Error when calling axios. Function name: search, File: search.js, Folder: server. The error returned: ', err)));
 }
 
+function getTxt(txtUrl = 'https://www.gutenberg.org/files/11/11-0.txt') {
+  return axios.get(txtUrl)
+  .catch(err => (console.log('Error when calling axios. Function name: search, File: search.js, Folder: server. The error returned: ', err)));
+}
+
 module.exports = {
-  search
+  search,
+  getTxt
 }
 
