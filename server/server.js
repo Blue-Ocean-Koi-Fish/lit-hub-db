@@ -20,16 +20,17 @@ app.use(
 );
 
 app.get('/test', (req, res) => {
-  res.json({ message: 'Welcome to LitHub!' });
+  res.json({ message: 'Welcome to LitHub!', query: req.query });
 })
 
 app.get('/search', (req, res) => {
 
-  search.search(req.params)
-  .then(data => (console.log('/search call is working! Data: ', data.data)))
+  search.search(req.query)
+  .then(data => {
+    console.log(data.data);
+    res.json(data.data);
+  })
   .catch(err => (console.log('/search is currently failing. Error: ', err)));
-
-  res.json({ message: 'Search has been used' });
 })
 
 app.get('/testUrl', (req, res) => {
@@ -39,11 +40,6 @@ app.get('/testUrl', (req, res) => {
     res.json(data.data);
   })
   .catch(err => (console.log('/search is currently failing. Error: ', err)));
-})
-
-app.get('/search/author', (req, res) => {
-
-  res.json({message: 'author call has not been completed'});
 })
 
 app.listen(process.env.PORT, () => {
