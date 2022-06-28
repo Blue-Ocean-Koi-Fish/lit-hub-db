@@ -17,15 +17,29 @@ function search(querys) {
 
 function getTxt(txtUrl = 'https://www.gutenberg.org/files/11/11-0.zip') {
   const checkPostFix = txtUrl.substr((txtUrl.length - 3));
-  let newUrl;
+  let newUrl = txtUrl;
+  let isHTML = false;
+
   if (checkPostFix === 'zip') {
     newUrl = txtUrl.substr(0, (txtUrl.length - 3));
     newUrl += 'txt';
-  } else {
-    newUrl = txtUrl;
+  } else if (checkPostFix === 'htm') {
+    isHTML = true;
   }
 
   return axios.get(newUrl)
+    .then((data) => {
+      const dataResults = data;
+      if (isHTML) {
+        let deleteIndex = dataResults.data.indexOf('<body>');
+        dataResults.data = dataResults.data.slice(deleteIndex);
+
+        deleteIndex = dataResults.data.indexOf('</body>');
+        dataResults.data = dataResults.data.slice(0, (deleteIndex + 7));
+      }
+
+      return dataResults;
+    })
     .catch((err) => (console.log('Error when calling axios. Function name: search, File: search.js, Folder: server. The error returned: ', err)));
 }
 
