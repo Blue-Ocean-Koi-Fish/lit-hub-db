@@ -39,7 +39,7 @@ app.get('/txt', (req, res) => {
   .then(data => {
     res.json(data.data);
   })
-  .catch(err => (console.log('/search is currently failing. Error: ', err)));
+  .catch(err => (console.log('/txt is currently failing. Error: ', err)));
 })
 
 app.listen(process.env.PORT, () => {
