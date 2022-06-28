@@ -1,7 +1,13 @@
+const dbAddress = 'mongodb://localhost:27017/lit_hub_users';
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-mongoose.connect('mongodb://localhost/lit_hub_users');
+mongoose.connect(dbAddress)
+  .then(() => console.log(`Connected to: ${dbAddress}`))
+  .catch((err) => {
+    console.log(`There was a problem connecting to mongo at: ${dbAddress}`);
+    console.log(err);
+  });
 
 const UserSchema = new mongoose.Schema({
   username: {
@@ -13,7 +19,6 @@ const UserSchema = new mongoose.Schema({
     bookName: String,
     onPage: Number,
   }],
-  loggedIn: false,
 });
 
 UserSchema.pre('save', function (next) {
@@ -32,16 +37,18 @@ UserSchema.pre('save', function (next) {
         });
       }
     });
+  } else {
+    return next();
   }
-  return next();
 });
 
-UserSchema.methods.comparePassword = (password, callback) => {
-  bcrypt.compare(password, this.password, (error, isMatch) => {
+UserSchema.methods.comparePassword = function (password, callback) {
+  bcrypt.compare(password, 'password', (error, isMatch) => {
     if (error) {
-      return callback(error);
+      console.log(error);
+      callback(error);
     }
-    return callback(null, isMatch);
+    callback(null, isMatch);
   });
 };
 
