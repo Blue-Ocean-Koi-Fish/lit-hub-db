@@ -12,26 +12,22 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get('/test', (req, res) => {
-  res.json({ message: 'Welcome to LitHub!', query: req.query });
-});
+app.get('/test', (req, res) => (res.json({ message: 'Welcome to LitHub!' })));
 
 app.get('/search', (req, res) => {
   console.log(req.query);
   search.search(req.query)
-    .then((data) => {
-      // console.log(data.data);
-      res.json(data.data);
-    })
+    .then((data) => (res.json(data.data)))
     .catch((err) => (console.log('/search is currently failing. Error: ', err)));
 });
 
 app.get('/txt', (req, res) => {
   search.getTxt(req.query.url)
-    .then((data) => {
-      res.json(data.data);
-    })
-    .catch((err) => (console.log('/txt is currently failing. Error: ', err)));
+    .then((data) => (res.json(data.data)))
+    .catch((err) => {
+      console.log('/txt is currently failing. Error: ', err);
+      res.send('The text does not exist');
+    });
 });
 
 app.post('/newUser', (req, res) => {
@@ -106,8 +102,61 @@ app.get('/allUsers', (req, res) => {
     });
 });
 
-app.put('/addToCollection', (req, res) => {
-  BookModel.create({});
+app.post('/addToCollection', (req, res) => {
+  const { username, bookId } = req.body;
+  BookModel.create({
+    username,
+    bookId,
+    page: 1,
+  })
+    .then(() => {
+      res.sendStatus(201);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send(err);
+    });
+});
+
+app.put('/updateCollection', (req, res) => {
+  const { username, bookId, page } = req.body;
+  BookModel.findOneAndUpdate({
+    username,
+    bookId,
+  }, { page })
+    .then(() => {
+      res.sendStatus(201);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send(err);
+    });
+});
+
+app.delete('/removeFromCollection', (req, res) => {
+  const { username, bookId } = req.body;
+  BookModel.findOneAndDelete({
+    username,
+    bookId,
+  })
+    .then(() => {
+      res.sendStatus(201);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send(err);
+    });
+});
+
+app.get('/collection/:username', (req, res) => {
+  BookModel.find({ username: req.params.username })
+    .then((data) => {
+      res.status(200).json(data);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send(err);
+    });
 });
 
 app.listen(process.env.PORT, () => {
