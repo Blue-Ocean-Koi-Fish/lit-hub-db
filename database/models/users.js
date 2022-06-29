@@ -7,13 +7,7 @@ mongoose.connect(`mongodb+srv://${process.env.mongoUser}:${process.env.mongoPass
   .then(() => console.log('Connected to mongodb'))
   .catch((err) => console.log('Error connecting to mongodb', err));
 
-// mongoose.connect(dbAddress)
-//   .then(() => console.log(`Connected to: ${dbAddress}`))
-//   .catch((err) => {
-//     console.log(`There was a problem connecting to mongo at: ${dbAddress}`);
-//     console.log(err);
-//   });
-
+// Database Schemas
 const UserSchema = new mongoose.Schema({
   username: {
     type: String,
@@ -28,6 +22,7 @@ const BookSchema = new mongoose.Schema({
   page: Number,
 });
 
+// Encrypts user password before it is saved.
 UserSchema.pre('save', function (next) {
   const user = this;
   if (this.isModified('password') || this.isNew) {
@@ -49,8 +44,9 @@ UserSchema.pre('save', function (next) {
   }
 });
 
-UserSchema.methods.comparePassword = (password, userpassword, callback) => {
-  bcrypt.compare(password, userpassword, (error, isMatch) => {
+// Used to check provided password against stored password
+UserSchema.methods.comparePassword = (password, userPassword, callback) => {
+  bcrypt.compare(password, userPassword, (error, isMatch) => {
     if (error) {
       console.log(error);
       callback(error);
