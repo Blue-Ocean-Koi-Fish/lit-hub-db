@@ -105,8 +105,61 @@ app.get('/allUsers', (req, res) => {
     });
 });
 
-app.put('/addToCollection', (req, res) => {
-  BookModel.create({});
+app.post('/addToCollection', (req, res) => {
+  const { username, bookId } = req.body;
+  BookModel.create({
+    username,
+    bookId,
+    page: 1,
+  })
+    .then(() => {
+      res.sendStatus(201);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send(err);
+    });
+});
+
+app.put('/updateCollection', (req, res) => {
+  const { username, bookId, page } = req.body;
+  BookModel.findOneAndUpdate({
+    username,
+    bookId,
+  }, { page })
+    .then(() => {
+      res.sendStatus(201);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send(err);
+    });
+});
+
+app.delete('/removeFromCollection', (req, res) => {
+  const { username, bookId } = req.body;
+  BookModel.findOneAndDelete({
+    username,
+    bookId,
+  })
+    .then(() => {
+      res.sendStatus(201);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send(err);
+    });
+});
+
+app.get('/collection/:username', (req, res) => {
+  BookModel.find({ username: req.params.username })
+    .then((data) => {
+      res.status(200).json(data);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send(err);
+    });
 });
 
 app.listen(process.env.PORT, () => {
