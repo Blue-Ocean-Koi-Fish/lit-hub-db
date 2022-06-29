@@ -23,7 +23,8 @@ app.get('/search', (req, res) => {
 
 app.get('/txt', (req, res) => {
   search.getTxt(req.query.url)
-    .then((data) => (res.json(data.data)))
+    // .then((data) => (res.json(data.data)))
+    .then((data) => (res.send(data)))
     .catch((err) => {
       console.log('/txt is currently failing. Error: ', err);
       res.send('The text does not exist');

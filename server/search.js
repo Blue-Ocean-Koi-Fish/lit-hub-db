@@ -16,10 +16,17 @@ function search(clientQuery) {
 }
 
 function getTxt(txtUrl) {
+  console.log(txtUrl);
   return axios.get(txtUrl)
     .then((data) => {
-      const dataResults = { data: data.data.slice(data.data.indexOf('<body>'), (data.data.indexOf('</body>') + 7)) };
-      return dataResults;
+      console.log(typeof data.data);
+      console.log(data.data.indexOf('<body>'));
+      let parsedData = data.data.slice(data.data.indexOf('<body>'), data.data.indexOf('</body>'));
+      // console.log(parsedData);
+      // const dataResults = { data: data.data.slice(data.data.indexOf('<body>'), (data.data.indexOf('</body>') + 7)) };
+      // const dataString = `${data.data}`;
+      // console.log(data);
+      return parsedData;
     })
     .catch((err) => (console.log('Error when calling axios. Function name: search, File: search.js, Folder: server. The error returned: ', err)));
 }
