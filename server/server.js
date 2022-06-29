@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const search = require('./search');
-
 require('dotenv').config();
 
 const app = express();
@@ -10,7 +9,7 @@ const app = express();
 //   origin: 'http://localhost:8081',
 // };
 
-// app.use(cors(corsOptions));
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -19,9 +18,10 @@ app.get('/test', (req, res) => {
 });
 
 app.get('/search', (req, res) => {
+  console.log(req.query);
   search.search(req.query)
     .then((data) => {
-      console.log(data.data);
+      // console.log(data.data);
       res.json(data.data);
     })
     .catch((err) => (console.log('/search is currently failing. Error: ', err)));
@@ -35,6 +35,6 @@ app.get('/txt', (req, res) => {
     .catch((err) => (console.log('/txt is currently failing. Error: ', err)));
 });
 
-app.listen(process.env.PORT, () => {
+app.listen(process.env.SERVER_PORT, () => {
   console.log(`Server listening on port ${process.env.SERVER_PORT}`);
 });

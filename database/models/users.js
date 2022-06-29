@@ -2,8 +2,8 @@ const dbAddress = 'mongodb://localhost:27017/lit_hub_users';
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-// require('dotenv').config();
-// mongoose.connect(`mongodb+srv://${process.env.mongoUser}:${process.env.mongoPass}@${process.env.mongoURL}/lit_hub_db?retryWrites=true&w=majority`);
+require('dotenv').config();
+mongoose.connect(`mongodb+srv://${process.env.mongoUser}:${process.env.mongoPass}@${process.env.mongoURL}/lit_hub_db?retryWrites=true&w=majority`);
 
 mongoose.connect(dbAddress)
   .then(() => console.log(`Connected to: ${dbAddress}`))
