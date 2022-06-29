@@ -1,25 +1,16 @@
 const express = require('express');
 const cors = require('cors');
-const cookieSession = require('cookie-session');
+const jwt = require('jsonwebtoken');
 const search = require('./search');
+const { UserModel, BookModel } = require('../database/models/users');
 
 require('dotenv').config();
 
 const app = express();
 
-const corsOptions = {
-  origin: 'http://localhost:8081',
-};
-app.use(cors(corsOptions));
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(
-  cookieSession({
-    name: 'lit-hub-session',
-    secret: process.env.COOKIE_SECRET,
-    httpOnly: true,
-  }),
-);
 
 app.get('/test', (req, res) => {
   res.json({ message: 'Welcome to LitHub!', query: req.query });
@@ -40,6 +31,82 @@ app.get('/txt', (req, res) => {
       res.json(data.data);
     })
     .catch((err) => (console.log('/txt is currently failing. Error: ', err)));
+});
+
+app.post('/newUser', (req, res) => {
+  const { username, password } = req.body;
+
+  // const newUserDocument = new UserModel({
+  //   username,
+  //   password,
+  // });
+  // newUserDocument.save((error) => {
+  //   if (error) {
+  //     res.sendStatus(500);
+  //   } else {
+  //     res.sendStatus(201);
+  //   }
+  // });
+
+  UserModel.create({
+    username,
+    password,
+  })
+    .then(() => {
+      res.sendStatus(201);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send(err);
+    });
+});
+
+app.post('/userLogin', (req, res) => {
+  const { username, password } = req.body;
+
+  UserModel.findOne({ username }, (err, user) => {
+    if (err) {
+      res.status(500).json({ msg: 'Invalid credentials.', err });
+    } else {
+      user.comparePassword(password, user.password, (err2, isMatch) => {
+        if (err2 || !isMatch) {
+          res.status(500).json({ msg: 'Invalid credentials.', err2 });
+        } else {
+          const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+          res.json({
+            token,
+            id: user._id,
+            username: user.username,
+          });
+        }
+      });
+    }
+  });
+});
+
+app.delete('/deleteUser', (req, res) => {
+  const { username } = req.body;
+
+  UserModel.deleteOne({ username }, (err) => {
+    if (err) {
+      res.status(500).json({ msg: err });
+    }
+    res.status(204).json({ success: true });
+  });
+});
+
+app.get('/allUsers', (req, res) => {
+  UserModel.find().exec()
+    .then((data) => {
+      res.json(data);
+    })
+    .catch((err) => {
+      throw err;
+    });
+});
+
+app.put('/addToCollection', (req, res) => {
+  BookModel.create({});
 });
 
 app.listen(process.env.PORT, () => {
