@@ -21,24 +21,17 @@ app.use(
   }),
 );
 
-app.get('/test', (req, res) => {
-  res.json({ message: 'Welcome to LitHub!', query: req.query });
-});
+app.get('/test', (req, res) => (res.json({ message: 'Welcome to LitHub!' })));
 
 app.get('/search', (req, res) => {
   search.search(req.query)
-    .then((data) => {
-      console.log(data.data);
-      res.json(data.data);
-    })
+    .then((data) => (res.json(data.data)))
     .catch((err) => (console.log('/search is currently failing. Error: ', err)));
 });
 
 app.get('/txt', (req, res) => {
   search.getTxt(req.query.url)
-    .then((data) => {
-      res.json(data.data);
-    })
+    .then((data) => (res.json(data.data)))
     .catch((err) => (console.log('/txt is currently failing. Error: ', err)));
 });
 
