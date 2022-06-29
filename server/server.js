@@ -1,13 +1,13 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const search = require('./search');
 const { UserModel, BookModel } = require('../database/models/users');
 
-require('dotenv').config();
-
 const app = express();
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -16,6 +16,7 @@ app.get('/test', (req, res) => {
   res.json({ message: 'Welcome to LitHub!', query: req.query });
 });
 
+// GutenDex Querying Routes
 app.get('/search', (req, res) => {
   search.search(req.query)
     .then((data) => {
@@ -33,20 +34,9 @@ app.get('/txt', (req, res) => {
     .catch((err) => (console.log('/txt is currently failing. Error: ', err)));
 });
 
+// User Registration / Log-in Routes
 app.post('/newUser', (req, res) => {
   const { username, password } = req.body;
-
-  // const newUserDocument = new UserModel({
-  //   username,
-  //   password,
-  // });
-  // newUserDocument.save((error) => {
-  //   if (error) {
-  //     res.sendStatus(500);
-  //   } else {
-  //     res.sendStatus(201);
-  //   }
-  // });
 
   UserModel.create({
     username,
@@ -65,25 +55,23 @@ app.post('/userLogin', (req, res) => {
   const { username, password } = req.body;
 
   UserModel.findOne({ username }, (err, user) => {
-    if (err) {
+    if (err || !user) {
       res.status(500).json({ msg: 'Invalid credentials.', err });
     } else {
       user.comparePassword(password, user.password, (err2, isMatch) => {
-        if (err2 || !isMatch) {
+        if (err2 || !isMatch || !user) {
           res.status(500).json({ msg: 'Invalid credentials.', err2 });
         } else {
           const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-          res.json({
-            token,
-            id: user._id,
-            username: user.username,
-          });
+          res.cookie('token', token, { httpOnly: true }, 'Secure');
+          res.sendStatus(201);
         }
       });
     }
   });
 });
 
+// Admin Routes
 app.delete('/deleteUser', (req, res) => {
   const { username } = req.body;
 
@@ -105,6 +93,7 @@ app.get('/allUsers', (req, res) => {
     });
 });
 
+// Book Collection Routes
 app.post('/addToCollection', (req, res) => {
   const { username, bookId } = req.body;
   BookModel.create({
