@@ -20,8 +20,9 @@ function getTxt(txtUrl) {
   return axios.get(txtUrl)
     .then((data) => {
       console.log(typeof data.data);
-      console.log(data.data.indexOf('<body>'));
-      let parsedData = data.data.slice(data.data.indexOf('<body>'), data.data.indexOf('</body>'));
+      console.log(data.data.indexOf('<body>'), data.data.indexOf('</body>'));
+      let parsedData = data.data.slice(data.data.indexOf('<body>'), data.data.indexOf('</body>') + 7);
+
       // console.log(parsedData);
       // const dataResults = { data: data.data.slice(data.data.indexOf('<body>'), (data.data.indexOf('</body>') + 7)) };
       // const dataString = `${data.data}`;
