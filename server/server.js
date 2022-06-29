@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const search = require('./search');
-const { UserModel, BookModel } = require('../database/models/users');
+const { UserModel, BookModel, SettingModel } = require('../database/models/users');
 
 require('dotenv').config();
 
@@ -32,22 +32,13 @@ app.get('/txt', (req, res) => {
 app.post('/newUser', (req, res) => {
   const { username, password } = req.body;
 
-  // const newUserDocument = new UserModel({
-  //   username,
-  //   password,
-  // });
-  // newUserDocument.save((error) => {
-  //   if (error) {
-  //     res.sendStatus(500);
-  //   } else {
-  //     res.sendStatus(201);
-  //   }
-  // });
-
   UserModel.create({
     username,
     password,
   })
+    .then(() => SettingModel.create({
+      username,
+    }))
     .then(() => {
       res.sendStatus(201);
     })
@@ -68,12 +59,24 @@ app.post('/userLogin', (req, res) => {
         if (err2 || !isMatch) {
           res.status(500).json({ msg: 'Invalid credentials.', err2 });
         } else {
-          const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-          res.json({
-            token,
-            id: user._id,
-            username: user.username,
-          });
+          SettingModel.findOne({
+            username,
+          })
+            .then((data) => {
+              const settings = {
+                language: data.language,
+                'color-blindedness': data['color-blindedness'],
+                font: data.font,
+                fontSize: data.fontSize,
+              };
+              const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+              res.json({
+                token,
+                id: user._id,
+                username: user.username,
+                settings,
+              });
+            });
         }
       });
     }
@@ -151,6 +154,19 @@ app.get('/collection/:username', (req, res) => {
   BookModel.find({ username: req.params.username })
     .then((data) => {
       res.status(200).json(data);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send(err);
+    });
+});
+
+app.put('/updateSettings', (req, res) => {
+  SettingModel.findOneAndUpdate({
+    username: req.body.username,
+  }, req.body.settings)
+    .then(() => {
+      res.sendStatus(201);
     })
     .catch((err) => {
       console.log(err);
