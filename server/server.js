@@ -59,7 +59,7 @@ app.post('/userLogin', (req, res) => {
           res.status(500).json({ msg: 'Invalid credentials.', err2 });
         } else {
           const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-          res.cookie('token', token, { httpOnly: true }, 'Secure');
+          res.cookie('token', token, { httpOnly: true, secure: true });
           res.sendStatus(201);
         }
       });
