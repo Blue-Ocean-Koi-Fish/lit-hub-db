@@ -1,16 +1,18 @@
-const dbAddress = 'mongodb://localhost:27017/lit_hub_users';
+// const dbAddress = 'mongodb://localhost:27017/lit_hub_users';
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-
 require('dotenv').config();
-mongoose.connect(`mongodb+srv://${process.env.mongoUser}:${process.env.mongoPass}@${process.env.mongoURL}/lit_hub_db?retryWrites=true&w=majority`);
 
-mongoose.connect(dbAddress)
-  .then(() => console.log(`Connected to: ${dbAddress}`))
-  .catch((err) => {
-    console.log(`There was a problem connecting to mongo at: ${dbAddress}`);
-    console.log(err);
-  });
+mongoose.connect(`mongodb+srv://${process.env.mongoUser}:${process.env.mongoPass}@${process.env.mongoURL}/lit_hub_db?retryWrites=true&w=majority`)
+  .then(() => console.log('Connected to mongodb'))
+  .catch((err) => console.log('Error connecting to mongodb', err));
+
+// mongoose.connect(dbAddress)
+//   .then(() => console.log(`Connected to: ${dbAddress}`))
+//   .catch((err) => {
+//     console.log(`There was a problem connecting to mongo at: ${dbAddress}`);
+//     console.log(err);
+//   });
 
 const UserSchema = new mongoose.Schema({
   username: {
@@ -18,10 +20,12 @@ const UserSchema = new mongoose.Schema({
     unique: true,
   },
   password: String,
-  bookList: [{
-    bookName: String,
-    onPage: Number,
-  }],
+});
+
+const BookSchema = new mongoose.Schema({
+  username: String,
+  bookId: Number,
+  page: Number,
 });
 
 UserSchema.pre('save', function (next) {
@@ -45,16 +49,19 @@ UserSchema.pre('save', function (next) {
   }
 });
 
-UserSchema.methods.comparePassword = function (password, callback) {
-  bcrypt.compare(password, 'password', (error, isMatch) => {
+UserSchema.methods.comparePassword = (password, userpassword, callback) => {
+  bcrypt.compare(password, userpassword, (error, isMatch) => {
     if (error) {
       console.log(error);
       callback(error);
+    } else {
+      callback(null, isMatch);
     }
-    callback(null, isMatch);
   });
 };
 
-const User = mongoose.model('User', UserSchema);
+const UserModel = mongoose.model('User', UserSchema);
 
-module.exports = User;
+const BookModel = mongoose.model('Book', BookSchema);
+
+module.exports = { UserModel, BookModel };
