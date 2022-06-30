@@ -22,6 +22,29 @@ const BookSchema = new mongoose.Schema({
   page: Number,
 });
 
+const SettingSchema = new mongoose.Schema({
+  username: {
+    type: String,
+    unique: true,
+  },
+  language: {
+    type: String,
+    default: 'English',
+  },
+  'color-blindedness': {
+    type: String,
+    default: 'none',
+  },
+  font: {
+    type: String,
+    default: 'Times',
+  },
+  fontSize: {
+    type: Number,
+    default: 24,
+  },
+});
+
 // Encrypts user password before it is saved.
 UserSchema.pre('save', function (next) {
   const user = this;
@@ -60,4 +83,6 @@ const UserModel = mongoose.model('User', UserSchema);
 
 const BookModel = mongoose.model('Book', BookSchema);
 
-module.exports = { UserModel, BookModel };
+const SettingModel = mongoose.model('Setting', SettingSchema);
+
+module.exports = { UserModel, BookModel, SettingModel };

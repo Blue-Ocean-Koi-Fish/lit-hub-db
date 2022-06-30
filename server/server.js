@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const search = require('./search');
-const { UserModel, BookModel } = require('../database/models/users');
+const { UserModel, BookModel, SettingModel } = require('../database/models/users');
 
 const app = express();
 
@@ -39,6 +39,9 @@ app.post('/newUser', (req, res) => {
     username,
     password,
   })
+    .then(() => SettingModel.create({
+      username,
+    }))
     .then(() => {
       res.sendStatus(201);
     })
@@ -59,9 +62,24 @@ app.post('/userLogin', (req, res) => {
         if (err2 || !isMatch || !user) {
           res.status(500).json({ msg: 'Invalid credentials.', err2 });
         } else {
-          const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-          res.cookie('token', token, { httpOnly: true, secure: true });
-          res.sendStatus(201);
+          SettingModel.findOne({
+            username,
+          })
+            .then((data) => {
+              const settings = {
+                language: data.language,
+                'color-blindedness': data['color-blindedness'],
+                font: data.font,
+                fontSize: data.fontSize,
+              };
+              const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+              res.json({
+                token,
+                id: user._id,
+                username: user.username,
+                settings,
+              });
+            });
         }
       });
     }
@@ -141,6 +159,19 @@ app.get('/collection/:username', (req, res) => {
   BookModel.find({ username: req.params.username })
     .then((data) => {
       res.status(200).json(data);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send(err);
+    });
+});
+
+app.put('/updateSettings', (req, res) => {
+  SettingModel.findOneAndUpdate({
+    username: req.body.username,
+  }, req.body.settings)
+    .then(() => {
+      res.sendStatus(201);
     })
     .catch((err) => {
       console.log(err);
