@@ -127,8 +127,16 @@ app.post('/loginUser', (req, res) => {
 //     });
 // });
 
-const verifyUser = (req, res, next) => {
-  console.log(req.cookies);
+app.post('/verifyToken', (req, res) => {
+  const cookie = req.cookies.s_id;
+  if (jwt.verify(cookie, process.env.JWT_SECRET)) {
+    res.sendStatus(200);
+  } else {
+    res.sendStatus(401);
+  }
+});
+
+const verifyToken = (req, res, next) => {
   const cookie = req.cookies.s_id;
   if (jwt.verify(cookie, process.env.JWT_SECRET)) {
     next();
@@ -138,7 +146,7 @@ const verifyUser = (req, res, next) => {
 };
 
 // Book Collection Routes
-app.post('/addToCollection', verifyUser, (req, res) => {
+app.post('/addToCollection', verifyToken, (req, res) => {
   const { username, bookId } = req.body;
   BookModel.create({
     username,
@@ -154,7 +162,7 @@ app.post('/addToCollection', verifyUser, (req, res) => {
     });
 });
 
-app.put('/updateCollection', verifyUser, (req, res) => {
+app.put('/updateCollection', verifyToken, (req, res) => {
   const { username, bookId, page } = req.body;
   BookModel.findOneAndUpdate({
     username,
@@ -169,7 +177,7 @@ app.put('/updateCollection', verifyUser, (req, res) => {
     });
 });
 
-app.delete('/removeFromCollection', verifyUser, (req, res) => {
+app.delete('/removeFromCollection', verifyToken, (req, res) => {
   const { username, bookId } = req.body;
   BookModel.findOneAndDelete({
     username,
@@ -184,7 +192,7 @@ app.delete('/removeFromCollection', verifyUser, (req, res) => {
     });
 });
 
-app.get('/collection/:username', verifyUser, (req, res) => {
+app.get('/collection/:username', verifyToken, (req, res) => {
   BookModel.find({ username: req.params.username })
     .then((data) => {
       res.status(200).json(data);
@@ -195,7 +203,7 @@ app.get('/collection/:username', verifyUser, (req, res) => {
     });
 });
 
-app.put('/updateSettings', verifyUser, (req, res) => {
+app.put('/updateSettings', verifyToken, (req, res) => {
   SettingModel.findOneAndUpdate({
     username: req.body.username,
   }, req.body.settings)
