@@ -129,11 +129,16 @@ app.post('/loginUser', (req, res) => {
 
 app.post('/verifyToken', (req, res) => {
   const cookie = req.cookies.s_id;
-  if (jwt.verify(cookie, process.env.JWT_SECRET)) {
-    res.sendStatus(200);
-  } else {
-    res.sendStatus(401);
-  }
+  jwt.verify(cookie, process.env.JWT_SECRET, (err, payload) => {
+    if (err) {
+      res.sendStatus(401);
+    } else {
+      UserModel.findById(payload.id, 'username')
+        .then((data) => {
+          res.status(200).send(data.username);
+        });
+    }
+  });
 });
 
 const verifyToken = (req, res, next) => {
