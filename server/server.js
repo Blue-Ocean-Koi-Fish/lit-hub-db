@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 const search = require('./search');
 const { UserModel, BookModel, SettingModel } = require('../database/models/users');
 
@@ -9,8 +10,14 @@ const app = express();
 
 // Middleware
 app.use(cors());
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use((req, res, next) => {
+  console.log(req.method, req.url);
+  next();
+});
 
 app.get('/test', (req, res) => (res.json({ message: 'Welcome to LitHub!' })));
 
@@ -31,8 +38,20 @@ app.get('/txt', (req, res) => {
     });
 });
 
+app.get('/popular', (req, res) => {
+  search.popular()
+    .then((data) => {
+      console.log(data.data);
+      res.json(data.data);
+    })
+    .catch((err) => {
+      console.log('/popular is currently failing. Error: ', err);
+      res.sendStatus(500);
+    });
+});
+
 // User Registration / Log-in Routes
-app.post('/newUser', (req, res) => {
+app.post('/registerUser', (req, res) => {
   const { username, password } = req.body;
 
   UserModel.create({
@@ -51,7 +70,7 @@ app.post('/newUser', (req, res) => {
     });
 });
 
-app.post('/userLogin', (req, res) => {
+app.post('/loginUser', (req, res) => {
   const { username, password } = req.body;
 
   UserModel.findOne({ username }, (err, user) => {
@@ -87,29 +106,39 @@ app.post('/userLogin', (req, res) => {
 });
 
 // Admin Routes
-app.delete('/deleteUser', (req, res) => {
-  const { username } = req.body;
+// app.delete('/deleteUser', (req, res) => {
+//   const { username } = req.body;
 
-  UserModel.deleteOne({ username }, (err) => {
-    if (err) {
-      res.status(500).json({ msg: err });
-    }
-    res.status(204).json({ success: true });
-  });
-});
+//   UserModel.deleteOne({ username }, (err) => {
+//     if (err) {
+//       res.status(500).json({ msg: err });
+//     }
+//     res.status(204).json({ success: true });
+//   });
+// });
 
-app.get('/allUsers', (req, res) => {
-  UserModel.find().exec()
-    .then((data) => {
-      res.json(data);
-    })
-    .catch((err) => {
-      throw err;
-    });
-});
+// app.get('/allUsers', (req, res) => {
+//   UserModel.find().exec()
+//     .then((data) => {
+//       res.json(data);
+//     })
+//     .catch((err) => {
+//       throw err;
+//     });
+// });
+
+const verifyUser = (req, res, next) => {
+  console.log(req.cookies);
+  const cookie = req.cookies.s_id;
+  if (jwt.verify(cookie, process.env.JWT_SECRET)) {
+    next();
+  } else {
+    res.sendStatus(401);
+  }
+};
 
 // Book Collection Routes
-app.post('/addToCollection', (req, res) => {
+app.post('/addToCollection', verifyUser, (req, res) => {
   const { username, bookId } = req.body;
   BookModel.create({
     username,
@@ -125,7 +154,7 @@ app.post('/addToCollection', (req, res) => {
     });
 });
 
-app.put('/updateCollection', (req, res) => {
+app.put('/updateCollection', verifyUser, (req, res) => {
   const { username, bookId, page } = req.body;
   BookModel.findOneAndUpdate({
     username,
@@ -140,7 +169,7 @@ app.put('/updateCollection', (req, res) => {
     });
 });
 
-app.delete('/removeFromCollection', (req, res) => {
+app.delete('/removeFromCollection', verifyUser, (req, res) => {
   const { username, bookId } = req.body;
   BookModel.findOneAndDelete({
     username,
@@ -155,7 +184,7 @@ app.delete('/removeFromCollection', (req, res) => {
     });
 });
 
-app.get('/collection/:username', (req, res) => {
+app.get('/collection/:username', verifyUser, (req, res) => {
   BookModel.find({ username: req.params.username })
     .then((data) => {
       res.status(200).json(data);
@@ -166,7 +195,7 @@ app.get('/collection/:username', (req, res) => {
     });
 });
 
-app.put('/updateSettings', (req, res) => {
+app.put('/updateSettings', verifyUser, (req, res) => {
   SettingModel.findOneAndUpdate({
     username: req.body.username,
   }, req.body.settings)
