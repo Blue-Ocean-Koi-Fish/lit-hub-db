@@ -17,14 +17,18 @@ function search(clientQuery) {
 function getTxt(txtUrl) {
   return axios.get(txtUrl)
     .then((data) => {
-      console.log(typeof data.data);
       const parsedData = data.data.slice(data.data.indexOf('<body>'), data.data.indexOf('</body>') + 7);
       return parsedData;
     })
     .catch((err) => (console.log('Error when calling axios. Function name: search, File: search.js, Folder: server. The error returned: ', err)));
 }
 
+function popular() {
+  return axios.get(url);
+}
+
 module.exports = {
   search,
   getTxt,
+  popular,
 };
