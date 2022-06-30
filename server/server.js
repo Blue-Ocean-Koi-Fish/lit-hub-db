@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 const search = require('./search');
 const { UserModel, BookModel } = require('../database/models/users');
 
@@ -11,7 +12,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
+app.use(cookieParser());
+app.options('*', cors());
 app.get('/test', (req, res) => (res.json({ message: 'Welcome to LitHub!' })));
 
 // GutenDex Querying Routes
@@ -31,7 +33,7 @@ app.get('/txt', (req, res) => {
 });
 
 // User Registration / Log-in Routes
-app.post('/newUser', (req, res) => {
+app.post('/registerUser', (req, res) => {
   const { username, password } = req.body;
 
   UserModel.create({
@@ -47,7 +49,7 @@ app.post('/newUser', (req, res) => {
     });
 });
 
-app.post('/userLogin', (req, res) => {
+app.post('/loginUser', (req, res) => {
   const { username, password } = req.body;
 
   UserModel.findOne({ username }, (err, user) => {
@@ -59,12 +61,24 @@ app.post('/userLogin', (req, res) => {
           res.status(500).json({ msg: 'Invalid credentials.', err2 });
         } else {
           const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-          res.cookie('token', token, { httpOnly: true, secure: true });
-          res.sendStatus(201);
+          res.cookie('access_token', token, {
+            httpOnly: true,
+          });
+          res.json({ msg: 'Login Successful', token });
         }
       });
     }
   });
+});
+
+function verifyToken (req, res, next) {
+  // console.log(req.cookies);
+}
+
+app.post('/verifyToken', (req, res) => {
+  console.log(req.cookies);
+  res.sendStatus(201);
+  verifyToken(req, res);
 });
 
 // Admin Routes
