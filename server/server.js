@@ -1,20 +1,22 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const search = require('./search');
 const { UserModel, BookModel, SettingModel } = require('../database/models/users');
 
-require('dotenv').config();
-
 const app = express();
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get('/test', (req, res) => (res.json({ message: 'Welcome to LitHub!' })));
 
+// GutenDex Querying Routes
 app.get('/search', (req, res) => {
+  console.log(req.query);
   search.search(req.query)
     .then((data) => (res.json(data.data)))
     .catch((err) => (console.log('/search is currently failing. Error: ', err)));
@@ -22,13 +24,14 @@ app.get('/search', (req, res) => {
 
 app.get('/txt', (req, res) => {
   search.getTxt(req.query.url)
-    .then((data) => (res.json(data.data)))
+    .then((data) => (res.send(data)))
     .catch((err) => {
       console.log('/txt is currently failing. Error: ', err);
       res.send('The text does not exist');
     });
 });
 
+// User Registration / Log-in Routes
 app.post('/newUser', (req, res) => {
   const { username, password } = req.body;
 
@@ -52,11 +55,11 @@ app.post('/userLogin', (req, res) => {
   const { username, password } = req.body;
 
   UserModel.findOne({ username }, (err, user) => {
-    if (err) {
+    if (err || !user) {
       res.status(500).json({ msg: 'Invalid credentials.', err });
     } else {
       user.comparePassword(password, user.password, (err2, isMatch) => {
-        if (err2 || !isMatch) {
+        if (err2 || !isMatch || !user) {
           res.status(500).json({ msg: 'Invalid credentials.', err2 });
         } else {
           SettingModel.findOne({
@@ -83,6 +86,7 @@ app.post('/userLogin', (req, res) => {
   });
 });
 
+// Admin Routes
 app.delete('/deleteUser', (req, res) => {
   const { username } = req.body;
 
@@ -104,6 +108,7 @@ app.get('/allUsers', (req, res) => {
     });
 });
 
+// Book Collection Routes
 app.post('/addToCollection', (req, res) => {
   const { username, bookId } = req.body;
   BookModel.create({
