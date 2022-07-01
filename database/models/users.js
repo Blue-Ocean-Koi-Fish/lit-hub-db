@@ -19,6 +19,7 @@ const UserSchema = new mongoose.Schema({
 const BookSchema = new mongoose.Schema({
   username: String,
   bookId: Number,
+  meta: mongoose.Schema.Types.Mixed,
   page: Number,
 });
 
