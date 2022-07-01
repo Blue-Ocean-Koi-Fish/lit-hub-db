@@ -41,7 +41,6 @@ app.get('/txt', (req, res) => {
 app.get('/popular', (req, res) => {
   search.popular()
     .then((data) => {
-      console.log(data.data);
       res.json(data.data);
     })
     .catch((err) => {
@@ -105,6 +104,10 @@ app.post('/loginUser', (req, res) => {
   });
 });
 
+app.put('/logoutUser', (req, res) => {
+  res.end();
+});
+
 // Admin Routes
 // app.delete('/deleteUser', (req, res) => {
 //   const { username } = req.body;
@@ -152,10 +155,11 @@ const verifyToken = (req, res, next) => {
 
 // Book Collection Routes
 app.post('/addToCollection', verifyToken, (req, res) => {
-  const { username, bookId } = req.body;
+  const { username, bookId, meta } = req.body;
   BookModel.create({
     username,
     bookId,
+    meta,
     page: 1,
   })
     .then(() => {
