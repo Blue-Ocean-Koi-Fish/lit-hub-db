@@ -136,9 +136,24 @@ app.post('/verifyToken', (req, res) => {
     if (err) {
       res.sendStatus(401);
     } else {
+      let username;
       UserModel.findById(payload.id, 'username')
         .then((data) => {
-          res.status(200).send(data.username);
+          username = data.username;
+          return SettingModel.findOne({
+            username,
+          });
+        }).then((data) => {
+          const settings = {
+            language: data.language,
+            'color-blindedness': data['color-blindedness'],
+            font: data.font,
+            fontSize: data.fontSize,
+          };
+          res.status(200).json({
+            username,
+            settings,
+          });
         });
     }
   });
